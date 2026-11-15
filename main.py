@@ -1,4 +1,5 @@
 import pygame
+import time
 
 pygame.init()
 screen=pygame.display.set_mode((1280,720))
@@ -13,6 +14,7 @@ ball = pygame.Rect(ball_pos.x, ball_pos.y, 10, 10)
 player = pygame.Rect(100, 300, 10, 100)
 bot = pygame.Rect(1200,300,10,100)
 
+font = pygame.font.Font(None,72)
 ball_speed_x = 10
 ball_speed_y = 2
 
@@ -21,6 +23,9 @@ player_speed_y=0
 
 bot_speed_x=0
 bot_speed_y=0
+
+bot_score = 0
+player_score = 0
 # key moving
 def keys():
     global player_speed_x, player_speed_y
@@ -54,12 +59,21 @@ while running:
 
     screen.fill("black")  # Fill the screen with black color
 
+    text = font.render(str(player_score), True, "white")
+    screen.blit(text,(1280/2-100,50))
+
+    text = font.render(str(bot_score), True, "white")
+    screen.blit(text,(1280/2+100,50))
+
     pygame.draw.circle(screen, "white", ball_pos,10)
     pygame.draw.rect(screen, "white", player)
     pygame.draw.rect(screen,"white", bot)
     bot_move()
     player_speed_x, player_speed_y=keys() 
-    print(player_speed_x, player_speed_y)  
+    print(player_speed_x, player_speed_y)
+
+
+# collision checks
     if player.colliderect(ball):
         if player_speed_x==0:
             ball_speed_x = -ball_speed_x
@@ -69,7 +83,6 @@ while running:
             ball_speed_y = -ball_speed_y
         else:
             ball_speed_y=-ball_speed_y*abs(player_speed_y)*.2
-
     if bot.colliderect(ball):
          if bot.colliderect(ball):
             if bot_speed_x==0:
@@ -80,8 +93,20 @@ while running:
                 ball_speed_y = -ball_speed_y
             else:
                 ball_speed_y=-ball_speed_y*abs(bot_speed_y)*.2
+    
     if ball_pos.y<0 or ball_pos.y>720:
         ball_speed_y=-ball_speed_y
+    if ball_pos.x<0: #ball lost on your side
+        time.sleep(1)
+        bot_score +=1
+        ball_pos = (1280/2, 720/2)
+        ball_speed_x = 10
+        ball_speed_y = 2
+    if ball_pos.x>1280: # ball lost on bot side
+        player_score +=1
+        ball_pos = (1280/2, 720/2)
+        ball_speed_x = 10
+        ball_speed_y = 2
     ball_pos.x -=ball_speed_x
     ball_pos.y -=ball_speed_y
     ball.center = ball_pos
