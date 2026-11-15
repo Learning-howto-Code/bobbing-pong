@@ -8,6 +8,7 @@ clock=pygame.time.Clock()
 running = True
 dt=0
 
+state ="start"
 ball_pos = pygame.Vector2(1080, 720/2)
 
 ball = pygame.Rect(ball_pos.x, ball_pos.y, 10, 10)
@@ -52,66 +53,85 @@ def bot_move():
         bot_speed_y=-5
         bot.y +=bot_speed_y
 while running:
-
     for event in pygame.event.get(): # closees pygame
         if event.type == pygame.QUIT:
             running = False
-
-    screen.fill("black")  # Fill the screen with black color
-
-    text = font.render(str(player_score), True, "white")
-    screen.blit(text,(1280/2-100,50))
-
-    text = font.render(str(bot_score), True, "white")
-    screen.blit(text,(1280/2+100,50))
-
-    pygame.draw.circle(screen, "white", ball_pos,10)
-    pygame.draw.rect(screen, "white", player)
-    pygame.draw.rect(screen,"white", bot)
-    bot_move()
-    player_speed_x, player_speed_y=keys() 
-    print(player_speed_x, player_speed_y)
-
-
-# collision checks
-    if player.colliderect(ball):
-        if player_speed_x==0:
-            ball_speed_x = -ball_speed_x
+    if player_score==9 or bot_score==9:
+        state="end"
+    if state=="start":
+        screen.blit(pygame.image.load("img/start.png").convert(),(0,0))
+        if pygame.key.get_pressed()[pygame.K_RETURN]:
+            player_score=0
+            bot_score=0
+            state="game"
+    elif state=="end":
+        if bot_score>player_score:
+            screen.blit(pygame.image.load("img/lose.png").convert(),(0,0))
         else:
-            ball_speed_x = -abs(player_speed_x)*1.2
-        if player_speed_y==0:
-            ball_speed_y = -ball_speed_y
-        else:
-            ball_speed_y=-ball_speed_y*abs(player_speed_y)*.2
-    if bot.colliderect(ball):
-         if bot.colliderect(ball):
-            if bot_speed_x==0:
+            screen.blit(pygame.image.load("img/win.png").convert(),(0,0))
+        if pygame.key.get_pressed()[pygame.K_RETURN]:
+            player_score=0
+            bot_score=0
+            state="start"
+    if state=="game":
+        
+
+        screen.fill("black")  # Fill the screen with black color
+
+        text = font.render(str(player_score), True, "white")
+        screen.blit(text,(1280/2-100,50))
+
+        text = font.render(str(bot_score), True, "white")
+        screen.blit(text,(1280/2+100,50))
+
+        pygame.draw.circle(screen, "white", ball_pos,10)
+        pygame.draw.rect(screen, "white", player)
+        pygame.draw.rect(screen,"white", bot)
+        bot_move()
+        player_speed_x, player_speed_y=keys() 
+        print(player_speed_x, player_speed_y)
+
+
+    # collision checks
+        if player.colliderect(ball):
+            if player_speed_x==0:
                 ball_speed_x = -ball_speed_x
             else:
-                ball_speed_x = -abs(bot_speed_x)*1.2
-            if bot_speed_y==0:
-                ball_speed_y = -ball_speed_y
+                ball_speed_x = -abs(player_speed_x)*1.2
+            if player_speed_y==0:
+                ball_speed_y = ball_speed_y
             else:
-                ball_speed_y=-ball_speed_y*abs(bot_speed_y)*.2
-    
-    if ball_pos.y<0 or ball_pos.y>720:
-        ball_speed_y=-ball_speed_y
-    if ball_pos.x<0: #ball lost on your side
-        time.sleep(1)
-        bot_score +=1
-        ball_pos = (1280/2, 720/2)
-        ball_speed_x = 10
-        ball_speed_y = 2
-    if ball_pos.x>1280: # ball lost on bot side
-        player_score +=1
-        ball_pos = (1280/2, 720/2)
-        ball_speed_x = 10
-        ball_speed_y = 2
-    ball_pos.x -=ball_speed_x
-    ball_pos.y -=ball_speed_y
-    ball.center = ball_pos
+                ball_speed_y=ball_speed_y+abs(player_speed_y)-7
+        if bot.colliderect(ball):
+            if bot.colliderect(ball):
+                if bot_speed_x==0:
+                    ball_speed_x = -ball_speed_x
+                else:
+                    ball_speed_x = -abs(bot_speed_x)*1.2
+                if bot_speed_y==0:
+                    ball_speed_y = ball_speed_y
+                else:
+                    ball_speed_y=ball_speed_y+abs(bot_speed_y)-7
+        
+        if ball_pos.y<0 or ball_pos.y>720:
+            ball_speed_y=-ball_speed_y
+        if ball_pos.x<0: #ball lost on your side
+            time.sleep(.3)
+            bot_score +=1
+            ball_pos.update((1280/2, 720/2))
+            ball_speed_x = 10
+            ball_speed_y = 2
+        if ball_pos.x>1280: # ball lost on bot side
+            player_score +=1
+            ball_pos.update((1280/2, 720/2))
+            ball_speed_x = 10
+            ball_speed_y = 2
+        ball_pos.x -=ball_speed_x
+        ball_pos.y -=ball_speed_y
+        ball.center = ball_pos
+        
+
+        dt=clock.tick(60) / 1000 
     pygame.display.flip()   # Update the display
     clock.tick(60)   
-
-    dt=clock.tick(60) / 1000  
-pygame.quit()      
+pygame.quit()    
